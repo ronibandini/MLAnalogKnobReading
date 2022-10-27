@@ -10,3 +10,8 @@ DFRbot button
 
 # Machine Learning
 Edge Impule Platform (free for developers)
+
+# Contact
+Roni Bandini
+https://www.instagram.com/ronibandini/
+https://twitter.com/RoniBandini
