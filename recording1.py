@@ -73,8 +73,11 @@ def main(argv):
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     modelfile = os.path.join(dir_path, model)
-
-    print('Machine learning model: ' + modelfile)
+    os.system('clear')
+    print('Machine Learnign Knob Eye')
+    print('Roni Bandini, October 2022')
+    print('')
+    print('Model: ' + modelfile)
 
     with ImageImpulseRunner(modelfile) as runner:
         try:
@@ -126,19 +129,22 @@ def main(argv):
                     buttonRead = GPIO.input(buttonPin)
 
                     for bb in res["result"]["bounding_boxes"]:
-                        
-                        print('%s (%.2f)' % (bb['label'], bb['value']))
+
+                        if (buttonRead == True):
+                            print(str(bb['label'])+" "+str( round(bb['value']*100,2)   )+" %")
 
                         if (bb['value']>detectionLimit and buttonRead == True):
-                            print("\tKnob outside safe limits. Stop recording.")
+                            print(">>> Outside limits. Stopping recording.")
                             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
                             sys.exit()
 
                         if (bb['value']>detectionLimit and buttonRead == False):
-                            print("\tKnob outside safe limit but system disabled")
+                            print(">>> Outside limit.")
 
-                        #print('\t%s (%.2f): x=%d y=%d w=%d h=%d' % (bb['label'], bb['value'], bb['x'], bb['y'], bb['width'], bb['height']))
                         img = cv2.rectangle(img, (bb['x'], bb['y']), (bb['x'] + bb['width'], bb['y'] + bb['height']), (255, 0, 0), 1)
+
+                    buttonRead = GPIO.input(buttonPin)
+
 
                 if (show_camera):
                     cv2.imshow('edgeimpulse', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
@@ -146,7 +152,7 @@ def main(argv):
                         break
 
                 next_frame = now() + 100
-                #print("Reading console knobs")
+                print("Knob eye watching...")
         finally:
             if (runner):
                 runner.stop()
