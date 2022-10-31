@@ -20,7 +20,7 @@ from edge_impulse_linux.image import ImageImpulseRunner
 runner = None
 show_camera = False
 
-detectionLimit=0.90
+detectionLimit=0.75
 buttonPin=15
 
 GPIO.setmode(GPIO.BCM)
@@ -69,15 +69,10 @@ def main(argv):
             help()
             sys.exit()
 
-    model = "rpi3cam-linux-armv7-v7.eim"
+    model = "ml-knob-eye-linux-armv7-v10.eim"
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    modelfile = os.path.join(dir_path, model)
-    os.system('clear')
-    print('Machine Learnign Knob Eye')
-    print('Roni Bandini, October 2022')
-    print('')
-    print('Model: ' + modelfile)
+    modelfile = os.path.join(dir_path, model)   
 
     with ImageImpulseRunner(modelfile) as runner:
         try:
@@ -105,7 +100,12 @@ def main(argv):
             else:
                 raise Exception("Couldn't initialize selected camera.")            
 
-            print("Recording...")            
+            os.system('clear')
+            print('Machine Learnign Knob Eye')
+            print('Roni Bandini, October 2022')
+            print('')
+            print('Model: ' + modelfile)
+            print("Recording wav file...")            
             process = subprocess.Popen("arecord --device=hw:1,0 --format S16_LE --rate 44100 -c1 record.wav", shell=True, stdout=subprocess.PIPE, preexec_fn=os.setsid)
 
             next_frame = 0 # limit to ~10 fps here
@@ -133,13 +133,10 @@ def main(argv):
                         if (buttonRead == True):
                             print(str(bb['label'])+" "+str( round(bb['value']*100,2)   )+" %")
 
-                        if (bb['value']>detectionLimit and buttonRead == True):
+                        if (bb['value']>detectionLimit and buttonRead == True and str(bb['label'])!='mid' ):
                             print(">>> Outside limits. Stopping recording.")
                             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
                             sys.exit()
-
-                        if (bb['value']>detectionLimit and buttonRead == False):
-                            print(">>> Outside limit.")
 
                         img = cv2.rectangle(img, (bb['x'], bb['y']), (bb['x'] + bb['width'], bb['y'] + bb['height']), (255, 0, 0), 1)
 
@@ -152,7 +149,10 @@ def main(argv):
                         break
 
                 next_frame = now() + 100
-                print("Knob eye watching...")
+                if (buttonRead == True):
+                    print("Knob eye watching...")
+                else:
+                    print("Knob eye disabled...")
         finally:
             if (runner):
                 runner.stop()
